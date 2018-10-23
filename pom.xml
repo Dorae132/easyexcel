@@ -5,12 +5,19 @@
 
 	<groupId>com.dorae132.easyutil</groupId>
 	<artifactId>easyexcel</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>easyexcel</name>
-	<description>Demo project for Spring Boot</description>
-
+	<description>excel utils</description>
+	
+	<developers>
+		<developer>
+			<name>dorae132</name>
+			<url>https://github.com/Dorae132/easyexcel</url>
+		</developer>
+	</developers>
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -20,6 +27,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
 	</properties>
+	
 	<dependencies>
 		<!-- poi excel -->
 		<dependency>
