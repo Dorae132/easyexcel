@@ -146,5 +146,5 @@
 
 ## 三、To do
 
-1. 导出excel和获取数据的接口并行化；
+1. 导出excel和获取数据的接口并行化；（done, see the PARALLEL_APPEND_MODE）
 2. 完善utils。
