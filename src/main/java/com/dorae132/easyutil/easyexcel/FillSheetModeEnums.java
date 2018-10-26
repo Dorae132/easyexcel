@@ -101,7 +101,7 @@ public enum FillSheetModeEnums {
 				}
 			};
 			// start
-			new Thread(getDataThread).start();
+			executorService.execute(getDataThread);
 			// main thread fill the excel
 			while (true) {
 				List dataList = (List) dataPairQueue.poll();

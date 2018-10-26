@@ -59,12 +59,6 @@ public class UtilsTest {
 
 					@Override
 					public Pair<List<TestValue>, Boolean> getDatas() {
-						try {
-							TimeUnit.SECONDS.sleep(2);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
 						boolean hasNext = i < 9;
 						i++;
 						return Pair.of(dataList, hasNext);
