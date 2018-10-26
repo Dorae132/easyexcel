@@ -156,7 +156,6 @@ public class ExcelProperties<T, R> {
 			this.fields.add(declaredField);
 		}
 		this.fieldNameMap = Stream.of(declaredFields).collect(Collectors.toMap(Field::getName, e -> e));
-		
 	}
 
 	public int getRowAccessWindowsize() {

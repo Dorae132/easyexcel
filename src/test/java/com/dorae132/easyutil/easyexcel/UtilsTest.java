@@ -2,6 +2,7 @@ package com.dorae132.easyutil.easyexcel;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -58,12 +59,18 @@ public class UtilsTest {
 
 					@Override
 					public Pair<List<TestValue>, Boolean> getDatas() {
-						boolean hasNext = i < 10;
+						try {
+							TimeUnit.SECONDS.sleep(2);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						boolean hasNext = i < 9;
 						i++;
 						return Pair.of(dataList, hasNext);
 					}
 				});
-		File file = (File) ExcelUtils.excelExport(properties, FillSheetModeEnums.APPEND_MODE.getValue());
+		File file = (File) ExcelUtils.excelExport(properties, FillSheetModeEnums.PARALLEL_APPEND_MODE.getValue());
 		System.out.println("apendMode: " + (System.currentTimeMillis() - start));
 	}
 }
