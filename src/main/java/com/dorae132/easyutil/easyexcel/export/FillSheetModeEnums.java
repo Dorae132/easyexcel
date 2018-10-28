@@ -1,4 +1,4 @@
-package com.dorae132.easyutil.easyexcel;
+package com.dorae132.easyutil.easyexcel.export;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Sheet;
+
+import com.dorae132.easyutil.easyexcel.ExcelProperties;
+import com.dorae132.easyutil.easyexcel.Pair;
 
 /**
  * 写入模式枚举
@@ -72,7 +75,7 @@ public enum FillSheetModeEnums {
 		public void fill(ExcelProperties properties, Sheet sheet) throws Exception {
 			int rowOffset = 0;
 			AbstractDataSupplier dataSupplier = properties.getDataSupplier();
-			LinkedBlockingQueue dataPairQueue = new LinkedBlockingQueue<>(1000);
+			LinkedBlockingQueue dataPairQueue = new LinkedBlockingQueue<>();
 			// more data or not
 			AtomicBoolean moreData = new AtomicBoolean(true);
 			// the get data thread

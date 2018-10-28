@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
+import com.dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -55,23 +57,29 @@ public class ExcelProperties<T, R> {
 	// 缓冲
 	private int rowAccessWindowsize = 100;
 	
-	private IExcelProcessor<R> processor;
+	private IExcelProcessor processor;
 
 	private AbstractDataSupplier<T> dataSupplier;
 	
 	private Class dataClazz;
 	
 	public static ExcelProperties produceCommonProperties(String sheetName, List<?> dataList, String filePath,
-			String fileName, int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor<?> processor) throws Exception {
+			String fileName, int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor) throws Exception {
 		return new ExcelProperties<>(sheetName, dataList, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, processor, null);
 	}
 	
 	public static ExcelProperties produceAppendProperties(String sheetName, String filePath, String fileName,
-			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor<?> processor, AbstractDataSupplier<?> dataSupplier)
+			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor, AbstractDataSupplier<?> dataSupplier)
 			throws Exception {
 		return new ExcelProperties<>(sheetName, null, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, processor, dataSupplier);
 	}
 	
+	public static ExcelProperties produceReadProperties(String filePath, String fileName) {
+		ExcelProperties excelProperties = new ExcelProperties();
+		excelProperties.setFilePath(filePath);
+		excelProperties.setFileName(fileName);
+		return excelProperties;
+	}
 	/**
 	 * 
 	 * @param sheetName
@@ -90,7 +98,7 @@ public class ExcelProperties<T, R> {
 	 */
 	@SuppressWarnings("unchecked")
 	private ExcelProperties(String sheetName, List<T> dataList, String filePath, String fileName, int rowOffset,
-			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor<R> processor,
+			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor,
 			AbstractDataSupplier<T> dataSupplier) throws Exception {
 		super();
 		// 1.check
@@ -156,6 +164,11 @@ public class ExcelProperties<T, R> {
 			this.fields.add(declaredField);
 		}
 		this.fieldNameMap = Stream.of(declaredFields).collect(Collectors.toMap(Field::getName, e -> e));
+	}
+
+	private ExcelProperties() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 
 	public int getRowAccessWindowsize() {
@@ -238,11 +251,11 @@ public class ExcelProperties<T, R> {
 		this.colOffset = colOffset;
 	}
 
-	public IExcelProcessor<R> getProcessor() {
+	public IExcelProcessor getProcessor() {
 		return processor;
 	}
 
-	public void setProcessor(IExcelProcessor<R> processor) {
+	public void setProcessor(IExcelProcessor processor) {
 		this.processor = processor;
 	}
 

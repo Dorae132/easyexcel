@@ -1,6 +1,8 @@
-package com.dorae132.easyutil.easyexcel;
+package com.dorae132.easyutil.easyexcel.export;
 
 import java.util.List;
+
+import com.dorae132.easyutil.easyexcel.Pair;
 
 /**
  * for the append strategy

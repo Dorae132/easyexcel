@@ -2,10 +2,18 @@ package com.dorae132.easyutil.easyexcel;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
 
+import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
+import com.dorae132.easyutil.easyexcel.export.ExcelCol;
+import com.dorae132.easyutil.easyexcel.export.FillSheetModeEnums;
+import com.dorae132.easyutil.easyexcel.read.IReadDoneCallBack;
+import com.dorae132.easyutil.easyexcel.read.IRowConsumer;
+import com.dorae132.easyutil.easyexcel.read.IRowSupplier;
+import com.dorae132.easyutil.easyexcel.read.ISheetSupplier;
 import com.google.common.collect.Lists;
 
 @SuppressWarnings("unchecked")
@@ -31,7 +39,7 @@ public class UtilsTest {
 	}
 
 	private List<TestValue> getData(int count) {
-		List<TestValue> dataList = Lists.newArrayListWithCapacity(10000);
+		List<TestValue> dataList = Lists.newArrayListWithCapacity(count);
 		for (int i = 0; i < count; i++) {
 			dataList.add(new TestValue("张三" + i, "age: " + i, null, "clazz: " + i));
 		}
@@ -51,10 +59,17 @@ public class UtilsTest {
 	
 	@Test
 	public void testAppend() throws Exception {
-		List<TestValue> dataList = getData(10000);
+		List<TestValue> dataList = getData(100000);
 		long start = System.currentTimeMillis();
+		IExcelProcessor processor = new IExcelProcessor<String, File>() {
+
+			@Override
+			public String process(File f) {
+				return f.getName();
+			}
+		};
 		ExcelProperties<TestValue, File> properties = ExcelProperties.produceAppendProperties("",
-				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, null, new AbstractDataSupplier<TestValue>() {
+				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, processor, new AbstractDataSupplier<TestValue>() {
 					private int i = 0;
 
 					@Override
@@ -64,7 +79,39 @@ public class UtilsTest {
 						return Pair.of(dataList, hasNext);
 					}
 				});
-		File file = (File) ExcelUtils.excelExport(properties, FillSheetModeEnums.PARALLEL_APPEND_MODE.getValue());
+		String result = (String) ExcelUtils.excelExport(properties, FillSheetModeEnums.PARALLEL_APPEND_MODE.getValue());
 		System.out.println("apendMode: " + (System.currentTimeMillis() - start));
 	}
+	
+//	@Test
+	public static void testRead() throws Exception {
+		AtomicInteger count = new AtomicInteger(0);
+		ExcelUtils.excelRead(ExcelProperties.produceReadProperties("C:\\Users\\Dorae\\Desktop\\ttt\\", "append_0745704108fa42ffb656aef983229955.xlsx"),
+				new ISheetSupplier() {
+				},
+				new IRowSupplier() {
+				},
+				new IRowConsumer() {
+					
+					@Override
+					public void consume(Row row) {
+						System.out.println("row: " + count.getAndIncrement());
+					}
+				},
+				new IReadDoneCallBack<String>() {
+
+					@Override
+					public String call() {
+						System.out.println("call back");
+						return null;
+					}
+				},
+				5,
+				true);
+		System.out.println("main end" + count.get());
+	}
+	public static void main(String[] args) throws Exception {;
+		testRead();
+	}
+	
 }

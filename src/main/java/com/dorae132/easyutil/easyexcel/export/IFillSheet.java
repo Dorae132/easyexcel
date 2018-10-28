@@ -1,4 +1,4 @@
-package com.dorae132.easyutil.easyexcel;
+package com.dorae132.easyutil.easyexcel.export;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -8,6 +8,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellUtil;
+
+import com.dorae132.easyutil.easyexcel.ExcelProperties;
 
 /**
  * 填充sheet
