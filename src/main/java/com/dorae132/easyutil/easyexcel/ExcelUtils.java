@@ -85,21 +85,17 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 读取工具类
+	 * read util, enable multi sheet
 	 * 
 	 * @param properties
-	 * @param sheetSupplier
-	 *            默认获取第0个sheet
-	 * @param rowSupplier
-	 *            默认从第1个row开始获取
 	 * @param rowConsumer
-	 *            需要实现
+	 *            the consumer of a rowList
 	 * @param callBack
 	 *            if null do nothing
 	 * @param threadCount
-	 *            消费row的线程数
+	 *            the number of the consume thread
 	 * @param syncCurrentThread
-	 *            是否需要同步当前线程
+	 *            synchronized the current thread or not
 	 * @throws Exception
 	 */
 	public static void excelRead(ExcelProperties properties, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
