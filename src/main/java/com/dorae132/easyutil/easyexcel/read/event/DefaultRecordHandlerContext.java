@@ -1,4 +1,4 @@
-package com.dorae132.easyutil.easyexcel.read.event.recordhandler;
+package com.dorae132.easyutil.easyexcel.read.event;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -6,6 +6,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.poi.hssf.record.Record;
 import org.apache.poi.hssf.record.SSTRecord;
 
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.AbstractRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.BlankRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.NumberRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.RowEndRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.SSTRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.StringRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.TailRecordHandler;
 import com.google.common.collect.Lists;
 
 /**
@@ -40,10 +47,10 @@ public class DefaultRecordHandlerContext implements IRecordHandlerContext<String
 		// The head handler do nothing, just pass
 		headRecordHandler = new AbstractRecordHandler() {
 			@Override
-			protected void decode(IRecordHandlerContext handlerContext, Record record) throws Exception {
+			public void decode(IRecordHandlerContext handlerContext, Record record) throws Exception {
 			}		
 			@Override
-			protected boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
+			public boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
 				return false;
 			}
 		};

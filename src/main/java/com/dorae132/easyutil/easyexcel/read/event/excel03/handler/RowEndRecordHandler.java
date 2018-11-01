@@ -1,7 +1,9 @@
-package com.dorae132.easyutil.easyexcel.read.event.recordhandler;
+package com.dorae132.easyutil.easyexcel.read.event.excel03.handler;
 
 import org.apache.poi.hssf.eventusermodel.dummyrecord.LastCellOfRowDummyRecord;
 import org.apache.poi.hssf.record.Record;
+
+import com.dorae132.easyutil.easyexcel.read.event.IRecordHandlerContext;
 
 /**
  * the row end handler
@@ -11,12 +13,12 @@ import org.apache.poi.hssf.record.Record;
 public class RowEndRecordHandler extends AbstractRecordHandler {
 
 	@Override
-	protected boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
+	public boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
 		return record instanceof LastCellOfRowDummyRecord;
 	}
 
 	@Override
-	protected void decode(IRecordHandlerContext handlerContext, Record record) throws Exception {
+	public void decode(IRecordHandlerContext handlerContext, Record record) throws Exception {
 		// 产生新行，结束当前行
 		if (handlerContext.getCurrColNum() != 0) {
 			handlerContext.newRow(handlerContext.getCurrRowList());

@@ -1,7 +1,9 @@
-package com.dorae132.easyutil.easyexcel.read.event.recordhandler;
+package com.dorae132.easyutil.easyexcel.read.event.excel03.handler;
 
 import org.apache.poi.hssf.record.LabelSSTRecord;
 import org.apache.poi.hssf.record.Record;
+
+import com.dorae132.easyutil.easyexcel.read.event.IRecordHandlerContext;
 
 /**
  * The handler for string cel.
@@ -11,12 +13,12 @@ import org.apache.poi.hssf.record.Record;
 public class StringRecordHandler extends AbstractRecordHandler {
 
 	@Override
-	protected boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
+	public boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
 		return LabelSSTRecord.sid == record.getSid();
 	}
 
 	@Override
-	protected void decode(IRecordHandlerContext handlerContext, Record record) {
+	public void decode(IRecordHandlerContext handlerContext, Record record) {
 		LabelSSTRecord labelSSTRecord = (LabelSSTRecord) record;
 		int currColNum = labelSSTRecord.getColumn();
 		handlerContext.addCol2CurrRowList(handlerContext.getSSTRecord().getString(labelSSTRecord.getSSTIndex()).toString());
