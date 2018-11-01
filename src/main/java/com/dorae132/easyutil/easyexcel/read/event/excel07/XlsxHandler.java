@@ -22,7 +22,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.dorae132.easyutil.easyexcel.read.event.excel03.IRecordHandlerContext;
+import com.dorae132.easyutil.easyexcel.read.event.IHandlerContext;
 import com.google.common.collect.Lists;
 
 /**
@@ -33,7 +33,7 @@ import com.google.common.collect.Lists;
  */
 public class XlsxHandler extends DefaultHandler {
 
-	private IRecordHandlerContext context;
+	private IHandlerContext context;
 
 	/**
 	 * 共享字符串表
@@ -43,7 +43,7 @@ public class XlsxHandler extends DefaultHandler {
 	/**
 	 * 上一次的内容
 	 */
-	private StringBuffer lastContents;
+	private StringBuffer lastContents = new StringBuffer();
 
 	/**
 	 * 字符串标识
@@ -99,12 +99,16 @@ public class XlsxHandler extends DefaultHandler {
 	 */
 	private StylesTable stylesTable;
 
-	private XlsxHandler() {
+	public XlsxHandler() {
 		super();
 	}
 
-	public XlsxHandler(IRecordHandlerContext context) {
+	public XlsxHandler(IHandlerContext context) {
 		super();
+		this.context = context;
+	}
+
+	public void setContext(IHandlerContext context) {
 		this.context = context;
 	}
 
@@ -132,15 +136,18 @@ public class XlsxHandler extends DefaultHandler {
 			parser.parse(sheetSource);
 			sheet.close();
 		}
+		while (!context.fileEnd())
+			;
 	}
 
-	public XMLReader fetchSheetParser(SharedStringsTable sst) throws SAXException {
+	private XMLReader fetchSheetParser(SharedStringsTable sst) throws SAXException {
 		XMLReader parser = XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
 		this.sharedStringsTable = sst;
 		parser.setContentHandler(this);
 		return parser;
 	}
 
+	@Override
 	public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
 		// c => 单元格
 		if ("c".equals(name)) {
@@ -186,7 +193,7 @@ public class XlsxHandler extends DefaultHandler {
 	 * 
 	 * @param attributes
 	 */
-	public void setNextDataType(Attributes attributes) {
+	private void setNextDataType(Attributes attributes) {
 		nextDataType = CellDataType.NUMBER;
 		formatIndex = -1;
 		formatString = null;
@@ -234,7 +241,7 @@ public class XlsxHandler extends DefaultHandler {
 	 * @return
 	 */
 	@SuppressWarnings("deprecation")
-	public String getDataValue(String value, String thisStr) {
+	private String getDataValue(String value, String thisStr) {
 		switch (nextDataType) {
 		// 这几个的顺序不能随便交换，交换了很可能会导致数据错误
 		case BOOL:
@@ -332,7 +339,7 @@ public class XlsxHandler extends DefaultHandler {
 				} catch (Exception e) {
 					// do nothing
 				}
-				currRowList.clear();
+				currRowList = Lists.newArrayListWithExpectedSize(currRowList.size());
 				currRowIndex++;
 				currColIndex = 0;
 				preRef = null;
@@ -348,7 +355,7 @@ public class XlsxHandler extends DefaultHandler {
 	 * @param preRef
 	 * @return
 	 */
-	public int countNullCell(String ref, String preRef) {
+	private int countNullCell(String ref, String preRef) {
 		// excel2007最大行数是1048576，最大列数是16384，最后一列列名是XFD
 		String xfd = ref.replaceAll("\\d+", "");
 		String xfd_1 = preRef.replaceAll("\\d+", "");
@@ -371,7 +378,7 @@ public class XlsxHandler extends DefaultHandler {
 	 * @param isPre
 	 * @return
 	 */
-	String fillChar(String str, int len, char let, boolean isPre) {
+	private String fillChar(String str, int len, char let, boolean isPre) {
 		int len_1 = str.length();
 		if (len_1 < len) {
 			if (isPre) {

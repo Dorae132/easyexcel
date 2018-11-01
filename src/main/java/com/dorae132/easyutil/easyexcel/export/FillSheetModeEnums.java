@@ -12,7 +12,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Sheet;
 
 import com.dorae132.easyutil.easyexcel.ExcelProperties;
-import com.dorae132.easyutil.easyexcel.Pair;
+import com.dorae132.easyutil.easyexcel.common.Pair;
 
 /**
  * 写入模式枚举

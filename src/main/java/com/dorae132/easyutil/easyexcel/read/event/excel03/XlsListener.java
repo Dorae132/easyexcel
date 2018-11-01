@@ -9,10 +9,12 @@ import org.apache.poi.hssf.record.Record;
  * @author Dorae
  *
  */
+@Deprecated
 public class XlsListener implements HSSFListener {
 
-	private IRecordHandlerContext context = Default03RecordHandlerContext.DefaultRecordContextFactory.getContext();
-	
+	private IRecordHandlerContext context = Default03RecordHandlerContext.Default03RecordContextFactory.getContext(null,
+			null);
+
 	@Override
 	public void processRecord(Record record) {
 		try {
@@ -21,5 +23,4 @@ public class XlsListener implements HSSFListener {
 			// do nothing
 		}
 	}
-
 }

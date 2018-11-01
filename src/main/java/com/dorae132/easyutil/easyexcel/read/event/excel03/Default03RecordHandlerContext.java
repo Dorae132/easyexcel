@@ -2,12 +2,19 @@ package com.dorae132.easyutil.easyexcel.read.event.excel03;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.poi.hssf.eventusermodel.HSSFEventFactory;
+import org.apache.poi.hssf.eventusermodel.HSSFListener;
+import org.apache.poi.hssf.eventusermodel.HSSFRequest;
 import org.apache.poi.hssf.record.Record;
 import org.apache.poi.hssf.record.SSTRecord;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.Abstract03RecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.BlankRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.BoundSheetRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.EofRecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.NumberRecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.RowEndRecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.SSTRecordHandler;
@@ -20,7 +27,7 @@ import com.google.common.collect.Lists;
  * @author Dorae
  *
  */
-public class Default03RecordHandlerContext implements IRecordHandlerContext<Record, String> {
+public class Default03RecordHandlerContext implements IRecordHandlerContext<Record, String>, HSSFListener {
 
 	private int currColNum;
 	
@@ -31,14 +38,22 @@ public class Default03RecordHandlerContext implements IRecordHandlerContext<Reco
 	private LinkedBlockingQueue<List<String>> rowQueue;
 	
 	private Abstract03RecordHandler headRecordHandler;
+	
+	private AtomicInteger sheetNumbers = new AtomicInteger(1);
+	
+	private HSSFRequest request;
+	
+	private POIFSFileSystem fileSystem;
 
-	public static class DefaultRecordContextFactory {
-		public static Default03RecordHandlerContext getContext() {
+	public static class Default03RecordContextFactory {
+		public static Default03RecordHandlerContext getContext(HSSFRequest request, POIFSFileSystem fileSystem) {
 			Default03RecordHandlerContext context = new Default03RecordHandlerContext();
 			context.currColNum = 0;
 			context.currRowList = Lists.newArrayList();
 			context.rowQueue = new LinkedBlockingQueue<>();
 			context.initHeadHandler();
+			context.request = request;
+			context.fileSystem = fileSystem;
 			return context;
 		}
 	}
@@ -59,9 +74,12 @@ public class Default03RecordHandlerContext implements IRecordHandlerContext<Reco
 		NumberRecordHandler numberRecordHandler = new NumberRecordHandler(this);
 		BlankRecordHandler blankRecordHandler = new BlankRecordHandler(this);
 		RowEndRecordHandler rowEndRecordHandler = new RowEndRecordHandler(this);
+		BoundSheetRecordHandler boundSheetRecordHandler = new BoundSheetRecordHandler(this);
+		EofRecordHandler eofRecordHandler = new EofRecordHandler(this);
 		TailRecordHandler tailRecordHandler = new TailRecordHandler(this);
 		headRecordHandler.setNext(sstRecordHandler).setNext(stringRecordHandler).setNext(numberRecordHandler)
-				.setNext(blankRecordHandler).setNext(rowEndRecordHandler).setNext(tailRecordHandler);
+				.setNext(blankRecordHandler).setNext(rowEndRecordHandler).setNext(boundSheetRecordHandler)
+				.setNext(eofRecordHandler).setNext(tailRecordHandler);
 	}
 	
 	private Default03RecordHandlerContext() {
@@ -123,4 +141,45 @@ public class Default03RecordHandlerContext implements IRecordHandlerContext<Reco
 	public void newRow(List<String> row) throws InterruptedException {
 		this.rowQueue.put(row);
 	}
+
+	@Override
+	public List<String> getRow() throws Exception {
+		return this.rowQueue.poll();
+	}
+
+	@Override
+	public boolean fileEnd() {
+		return true;
+	}
+
+	@Override
+	public boolean isFileEnded() {
+		return sheetNumbers.intValue() == 0;
+	}
+
+	@Override
+	public void increaseSheetNumbers() {
+		sheetNumbers.incrementAndGet();
+	}
+
+	@Override
+	public void decreaseSheetNumbers() {
+		sheetNumbers.decrementAndGet();
+	}
+
+	@Override
+	public void process() throws Exception {
+		HSSFEventFactory hssfEventFactory = new HSSFEventFactory();
+		hssfEventFactory.processWorkbookEvents(this.request, this.fileSystem);
+	}
+
+	@Override
+	public void processRecord(Record record) {
+		try {
+			this.handle(record);
+		} catch (Exception e) {
+			// do nothing
+		}
+	}
+
 }

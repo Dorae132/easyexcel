@@ -4,16 +4,14 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
 
+import com.dorae132.easyutil.easyexcel.common.Pair;
 import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
 import com.dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.dorae132.easyutil.easyexcel.export.FillSheetModeEnums;
 import com.dorae132.easyutil.easyexcel.read.IReadDoneCallBack;
 import com.dorae132.easyutil.easyexcel.read.IRowConsumer;
-import com.dorae132.easyutil.easyexcel.read.IRowSupplier;
-import com.dorae132.easyutil.easyexcel.read.ISheetSupplier;
 import com.google.common.collect.Lists;
 
 @SuppressWarnings("unchecked")
@@ -45,18 +43,19 @@ public class UtilsTest {
 		}
 		return dataList;
 	}
-	
-//	@Test
-//	public void testCommonMode() throws Exception {
-//		List<TestValue> dataList = getData(100000);
-//		long start = System.currentTimeMillis();
-//		ExcelProperties<TestValue, File> properties = ExcelProperties.produceCommonProperties("", dataList,
-//				"C:\\Users\\Dorae\\Desktop\\ttt\\", "common.xlsx", 0, null, 0, null);
-//		File file = (File) ExcelUtils.excelExport(properties, FillSheetModeEnums.COMMON_MODE.getValue());
-//		System.out.println("commonMode: " + (System.currentTimeMillis() - start));
-//	}
-	
-	
+
+	// @Test
+	// public void testCommonMode() throws Exception {
+	// List<TestValue> dataList = getData(100000);
+	// long start = System.currentTimeMillis();
+	// ExcelProperties<TestValue, File> properties =
+	// ExcelProperties.produceCommonProperties("", dataList,
+	// "C:\\Users\\Dorae\\Desktop\\ttt\\", "common.xlsx", 0, null, 0, null);
+	// File file = (File) ExcelUtils.excelExport(properties,
+	// FillSheetModeEnums.COMMON_MODE.getValue());
+	// System.out.println("commonMode: " + (System.currentTimeMillis() - start));
+	// }
+
 	@Test
 	public void testAppend() throws Exception {
 		List<TestValue> dataList = getData(100000);
@@ -69,7 +68,8 @@ public class UtilsTest {
 			}
 		};
 		ExcelProperties<TestValue, File> properties = ExcelProperties.produceAppendProperties("",
-				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, processor, new AbstractDataSupplier<TestValue>() {
+				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, processor,
+				new AbstractDataSupplier<TestValue>() {
 					private int i = 0;
 
 					@Override
@@ -82,36 +82,32 @@ public class UtilsTest {
 		String result = (String) ExcelUtils.excelExport(properties, FillSheetModeEnums.PARALLEL_APPEND_MODE.getValue());
 		System.out.println("apendMode: " + (System.currentTimeMillis() - start));
 	}
-	
-//	@Test
+
+	// @Test
 	public static void testRead() throws Exception {
 		AtomicInteger count = new AtomicInteger(0);
-		ExcelUtils.excelRead(ExcelProperties.produceReadProperties("C:\\Users\\Dorae\\Desktop\\ttt\\", "append_0745704108fa42ffb656aef983229955.xlsx"),
-				new ISheetSupplier() {
-				},
-				new IRowSupplier() {
-				},
-				new IRowConsumer() {
-					
+		long start = System.currentTimeMillis();
+		ExcelUtils.excelRead(ExcelProperties.produceReadProperties("C:\\Users\\Dorae\\Desktop\\ttt\\","append_0745704108fa42ffb656aef983229955.xlsx"),
+				new IRowConsumer<String>() {
 					@Override
-					public void consume(Row row) {
-						System.out.println("row: " + count.getAndIncrement());
+					public void consume(List<String> row) {
+						System.out.println(row);
+						count.incrementAndGet();
 					}
 				},
-				new IReadDoneCallBack<String>() {
-
+				new IReadDoneCallBack<Void>() {
 					@Override
-					public String call() {
-						System.out.println("call back");
+					public Void call() {
+						System.out.println("end" + count.get() + "\n" + (System.currentTimeMillis() - start));
 						return null;
 					}
 				},
-				5,
-				true);
+				1, true);
 		System.out.println("main end" + count.get());
 	}
-	public static void main(String[] args) throws Exception {;
+
+	public static void main(String[] args) throws Exception {
 		testRead();
 	}
-	
+
 }

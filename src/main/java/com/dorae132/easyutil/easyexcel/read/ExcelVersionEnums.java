@@ -1,13 +1,17 @@
 package com.dorae132.easyutil.easyexcel.read;
 
-import java.io.File;
 import java.io.FileInputStream;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.hssf.eventusermodel.FormatTrackingHSSFListener;
+import org.apache.poi.hssf.eventusermodel.HSSFRequest;
+import org.apache.poi.hssf.eventusermodel.MissingRecordAwareHSSFListener;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import com.dorae132.easyutil.easyexcel.ExcelProperties;
+import com.dorae132.easyutil.easyexcel.read.event.IHandlerContext;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.Default03RecordHandlerContext;
+import com.dorae132.easyutil.easyexcel.read.event.excel07.Default07RecordHandlerContext;
+import com.dorae132.easyutil.easyexcel.read.event.excel07.XlsxHandler;
 
 /**
  * the enums of the excel versions
@@ -17,8 +21,7 @@ import com.dorae132.easyutil.easyexcel.ExcelProperties;
  */
 public enum ExcelVersionEnums {
 
-	V2003("xls"),
-	V2007("xlsx");
+	V2003("xls"), V2007("xlsx");
 
 	private String suffix;
 
@@ -30,17 +33,30 @@ public enum ExcelVersionEnums {
 		return suffix;
 	}
 
-	public static Workbook createWorkBook(ExcelProperties properties) throws Exception {
+	public static IHandlerContext produceContext(ExcelProperties properties) throws Exception {
 		StringBuilder fileNameSB = new StringBuilder(properties.getFileName());
 		String fileNameSufix = fileNameSB.substring(fileNameSB.lastIndexOf(".") + 1, fileNameSB.length());
-		String absolutePath = new StringBuilder(properties.getFilePath()).append(properties.getFileName()).toString();
-		File file = new File(absolutePath);
-		FileInputStream inputStream = new FileInputStream(file);
+		String absolutePath = fileNameSB.insert(0, properties.getFilePath()).toString();
 		if (V2003.getSuffix().equals(fileNameSufix)) {
-			return new HSSFWorkbook(inputStream);
+			HSSFRequest request = new HSSFRequest();
+			POIFSFileSystem fileSystem = new POIFSFileSystem(new FileInputStream(absolutePath));
+			Default03RecordHandlerContext context = Default03RecordHandlerContext.Default03RecordContextFactory
+					.getContext(request, fileSystem);
+			MissingRecordAwareHSSFListener missingRecordAwareHSSFListener = new MissingRecordAwareHSSFListener(context);
+			FormatTrackingHSSFListener formatTrackingHSSFListener = new FormatTrackingHSSFListener(
+					missingRecordAwareHSSFListener);
+			request.addListenerForAllRecords(formatTrackingHSSFListener);
+			// hssfRequest.addListenerForAllRecords(new
+			// SheetRecordCollectingListener(formatTrackingHSSFListener));
+			return context;
 		} else if (V2007.getSuffix().equals(fileNameSufix)) {
-			return new XSSFWorkbook(inputStream);
+			XlsxHandler xlsxHandler = new XlsxHandler();
+			Default07RecordHandlerContext context = Default07RecordHandlerContext.Default07RecordContextFactory
+					.getContext(xlsxHandler, absolutePath);
+			xlsxHandler.setContext(context);
+			return context;
+		} else {
+			throw new RuntimeException("不支持的文件类型");
 		}
-		return null;
 	};
 }

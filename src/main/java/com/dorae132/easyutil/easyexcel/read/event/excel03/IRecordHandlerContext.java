@@ -68,4 +68,16 @@ public interface IRecordHandlerContext<R, C> extends IHandlerContext<C> {
 	 * @param sstRecord
 	 */
 	void setSSTRecord(SSTRecord sstRecord);
+	
+	/**
+	 * set the number of the sheet.
+	 * this is used to judge whither the file has been ended or not.
+	 * @param nums
+	 */
+	void increaseSheetNumbers();
+	
+	/**
+	 * decrease the number of the sheet
+	 */
+	void decreaseSheetNumbers();
 }

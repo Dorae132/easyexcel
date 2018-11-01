@@ -4,17 +4,46 @@ import java.util.List;
 
 /**
  * handlerContext顶层接口
+ * 
  * @author Dorae
  *
- * @param <R> The type of the record
- * @param <C> The type that wanted in the cell
+ * @param <C>
+ *            The type that wanted in the cell
  */
-public interface IHandlerContext <C> {
+public interface IHandlerContext<C> {
 
 	/**
 	 * produce a new row
+	 * 
 	 * @param row
 	 * @throws InterruptedException
 	 */
-	public void newRow(List<C> row) throws Exception;
+	void newRow(List<C> row) throws Exception;
+
+	/**
+	 * get a row from the context
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	List<C> getRow() throws Exception;
+
+	/**
+	 * Fire this when the file is ending.
+	 * 
+	 * @return
+	 */
+	boolean fileEnd();
+
+	/**
+	 * the processing is end or not
+	 * 
+	 * @return
+	 */
+	boolean isFileEnded();
+
+	/**
+	 * process the file
+	 */
+	void process() throws Exception;
 }

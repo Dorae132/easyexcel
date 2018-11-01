@@ -1,33 +1,38 @@
 package com.dorae132.easyutil.easyexcel.read;
 
+import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.commons.collections.CollectionUtils;
+
+import com.dorae132.easyutil.easyexcel.read.event.IHandlerContext;
 
 /**
  * 消费rowthread
+ * 
  * @author Dorae
  *
  */
-public class ConsumeRowThread implements Runnable {
+public class ConsumeRowThread<C> implements Runnable {
 
-	private AtomicBoolean moreRow;
+	private IHandlerContext<C> context;
 
-	private LinkedBlockingQueue<Row> queue;
-
-	private IRowConsumer rowConsumer;
+	private IRowConsumer<C> rowConsumer;
 
 	private CyclicBarrier cyclicBarrier;
 
 	@Override
 	public void run() {
 		while (true) {
-			Row row = queue.poll();
-			if (row == null) {
-				if (moreRow.get()) {
+			List<C> row = null;
+			try {
+				row = context.getRow();
+			} catch (Exception e) {
+				// do nothing
+			}
+			if (CollectionUtils.isEmpty(row)) {
+				if (!context.isFileEnded()) {
 					// there are more rows
 					continue;
 				} else {
@@ -46,11 +51,9 @@ public class ConsumeRowThread implements Runnable {
 		}
 	}
 
-	public ConsumeRowThread(AtomicBoolean moreRow, LinkedBlockingQueue<Row> queue, IRowConsumer rowConsumer,
-			CyclicBarrier cyclicBarrier) {
+	public ConsumeRowThread(IHandlerContext<C> context, IRowConsumer<C> rowConsumer, CyclicBarrier cyclicBarrier) {
 		super();
-		this.moreRow = moreRow;
-		this.queue = queue;
+		this.context = context;
 		this.rowConsumer = rowConsumer;
 		this.cyclicBarrier = cyclicBarrier;
 	}
