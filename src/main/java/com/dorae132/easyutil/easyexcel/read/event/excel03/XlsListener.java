@@ -3,9 +3,6 @@ package com.dorae132.easyutil.easyexcel.read.event.excel03;
 import org.apache.poi.hssf.eventusermodel.HSSFListener;
 import org.apache.poi.hssf.record.Record;
 
-import com.dorae132.easyutil.easyexcel.read.event.DefaultRecordHandlerContext;
-import com.dorae132.easyutil.easyexcel.read.event.IRecordHandlerContext;
-
 /**
  * for xls
  * 
@@ -14,7 +11,7 @@ import com.dorae132.easyutil.easyexcel.read.event.IRecordHandlerContext;
  */
 public class XlsListener implements HSSFListener {
 
-	private IRecordHandlerContext context = DefaultRecordHandlerContext.DefaultRecordContextFactory.getContext();
+	private IRecordHandlerContext context = Default03RecordHandlerContext.DefaultRecordContextFactory.getContext();
 	
 	@Override
 	public void processRecord(Record record) {

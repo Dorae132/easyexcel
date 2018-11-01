@@ -22,7 +22,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.dorae132.easyutil.easyexcel.read.event.IRecordHandlerContext;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.IRecordHandlerContext;
 import com.google.common.collect.Lists;
 
 /**
@@ -98,6 +98,15 @@ public class XlsxHandler extends DefaultHandler {
 	 * 单元格
 	 */
 	private StylesTable stylesTable;
+
+	private XlsxHandler() {
+		super();
+	}
+
+	public XlsxHandler(IRecordHandlerContext context) {
+		super();
+		this.context = context;
+	}
 
 	/**
 	 * 遍历工作簿中所有的电子表格

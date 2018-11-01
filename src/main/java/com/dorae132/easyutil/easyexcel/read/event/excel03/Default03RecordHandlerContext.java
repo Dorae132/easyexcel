@@ -1,4 +1,4 @@
-package com.dorae132.easyutil.easyexcel.read.event;
+package com.dorae132.easyutil.easyexcel.read.event.excel03;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -6,7 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.poi.hssf.record.Record;
 import org.apache.poi.hssf.record.SSTRecord;
 
-import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.AbstractRecordHandler;
+import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.Abstract03RecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.BlankRecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.NumberRecordHandler;
 import com.dorae132.easyutil.easyexcel.read.event.excel03.handler.RowEndRecordHandler;
@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
  * @author Dorae
  *
  */
-public class DefaultRecordHandlerContext implements IRecordHandlerContext<String> {
+public class Default03RecordHandlerContext implements IRecordHandlerContext<Record, String> {
 
 	private int currColNum;
 	
@@ -30,11 +30,11 @@ public class DefaultRecordHandlerContext implements IRecordHandlerContext<String
 	
 	private LinkedBlockingQueue<List<String>> rowQueue;
 	
-	private AbstractRecordHandler headRecordHandler;
+	private Abstract03RecordHandler headRecordHandler;
 
 	public static class DefaultRecordContextFactory {
-		public static DefaultRecordHandlerContext getContext() {
-			DefaultRecordHandlerContext context = new DefaultRecordHandlerContext();
+		public static Default03RecordHandlerContext getContext() {
+			Default03RecordHandlerContext context = new Default03RecordHandlerContext();
 			context.currColNum = 0;
 			context.currRowList = Lists.newArrayList();
 			context.rowQueue = new LinkedBlockingQueue<>();
@@ -45,36 +45,36 @@ public class DefaultRecordHandlerContext implements IRecordHandlerContext<String
 	
 	protected void initHeadHandler() {
 		// The head handler do nothing, just pass
-		headRecordHandler = new AbstractRecordHandler() {
+		headRecordHandler = new Abstract03RecordHandler(this) {
 			@Override
-			public void decode(IRecordHandlerContext handlerContext, Record record) throws Exception {
+			public void decode(Record record) throws Exception {
 			}		
 			@Override
-			public boolean couldDecode(IRecordHandlerContext handlerContext, Record record) {
+			public boolean couldDecode(Record record) {
 				return false;
 			}
 		};
-		SSTRecordHandler sstRecordHandler = new SSTRecordHandler();
-		StringRecordHandler stringRecordHandler = new StringRecordHandler();
-		NumberRecordHandler numberRecordHandler = new NumberRecordHandler();
-		BlankRecordHandler blankRecordHandler = new BlankRecordHandler();
-		RowEndRecordHandler rowEndRecordHandler = new RowEndRecordHandler();
-		TailRecordHandler tailRecordHandler = new TailRecordHandler();
+		SSTRecordHandler sstRecordHandler = new SSTRecordHandler(this);
+		StringRecordHandler stringRecordHandler = new StringRecordHandler(this);
+		NumberRecordHandler numberRecordHandler = new NumberRecordHandler(this);
+		BlankRecordHandler blankRecordHandler = new BlankRecordHandler(this);
+		RowEndRecordHandler rowEndRecordHandler = new RowEndRecordHandler(this);
+		TailRecordHandler tailRecordHandler = new TailRecordHandler(this);
 		headRecordHandler.setNext(sstRecordHandler).setNext(stringRecordHandler).setNext(numberRecordHandler)
 				.setNext(blankRecordHandler).setNext(rowEndRecordHandler).setNext(tailRecordHandler);
 	}
 	
-	private DefaultRecordHandlerContext() {
+	private Default03RecordHandlerContext() {
 		super();
 	}
 
 	@Override
 	public void handle(Record record) throws Exception {
-		this.headRecordHandler.handle(this, record);
+		this.headRecordHandler.handle(record);
 	}
 	
 	@Override
-	public void registRecordHandler(AbstractRecordHandler recordHandler) {
+	public void registRecordHandler(Abstract03RecordHandler recordHandler) {
 		// Let the SSTRecordHandler has the highest priority.
 		recordHandler.setNext(headRecordHandler.next.next);
 		headRecordHandler.next.setNext(recordHandler);
