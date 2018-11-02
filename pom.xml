@@ -28,6 +28,7 @@
 		<developerConnection>scm:git:https://github.com/Dorae132/easyexcel.git</developerConnection>
 		<url>https://github.com/Dorae132/easyexcel</url>
 	</scm>
+	<url>https://github.com/Dorae132/easyexcel</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
