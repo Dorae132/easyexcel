@@ -2,6 +2,7 @@ package com.dorae132.easyutil.easyexcel;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -94,6 +95,12 @@ public class UtilsTest {
 					public void consume(List<String> row) {
 						System.out.println(row);
 						count.incrementAndGet();
+						try {
+							TimeUnit.MICROSECONDS.sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}, new IReadDoneCallBack<Void>() {
 					@Override
@@ -102,7 +109,7 @@ public class UtilsTest {
 								"end, count: " + count.get() + "\ntime: " + (System.currentTimeMillis() - start));
 						return null;
 					}
-				}, 1, true);
+				}, 3, true);
 		System.out.println("main end" + count.get());
 	}
 
