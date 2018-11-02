@@ -148,3 +148,85 @@
 
 1. 导出excel和获取数据的接口并行化；（done, see the PARALLEL_APPEND_MODE）
 2. 完善utils。
+
+
+
+# 读取篇
+
+# 高效读取百万级数据
+
+接[上一篇](https://github.com/Dorae132/easyexcel/blob/master/README.md)介绍的高效写文件之后，最近抽时间研究了下Excel文件的读取。概括来讲，poi读取excel有两种方式：**用户模式和事件模式**。
+
+然而很多业务场景中的读取Excel仍然采用用户模式，但是这种模式需要创建大量对象，对大文件的支持非常不友好，非常容易OOM。但是对于事件模式而言，往往需要自己实现listener，并且需要根据自己需要解析不同的event，所以用起来比较复杂。
+
+<font color = "red">基于此，EasyExcel封装了常用的Excel格式文档的事件解析，并且提供了接口供开发小哥**扩展定制化**，实现让你解析Excel不再费神的目的。</font>
+
+Talk is cheap, show me the code.
+
+### 使用姿势
+
+
+#### 普通姿势
+
+看看下边的姿势，是不是觉得**只需要关心业务逻辑了**？
+
+    ExcelUtils.excelRead(ExcelProperties.produceReadProperties("C:\\Users\\Dorae\\Desktop\\ttt\\",
+				"append_0745704108fa42ffb656aef983229955.xlsx"), new IRowConsumer<String>() {
+					@Override
+					public void consume(List<String> row) {
+						System.out.println(row);
+						count.incrementAndGet();
+						try {
+							TimeUnit.MICROSECONDS.sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}, new IReadDoneCallBack<Void>() {
+					@Override
+					public Void call() {
+						System.out.println(
+								"end, count: " + count.get() + "\ntime: " + (System.currentTimeMillis() - start));
+						return null;
+					}
+				}, 3, true);
+				
+				
+#### 定制姿势
+
+什么？你想**定制context，添加handler**？请看下边！你只需要实现一个Abstract03RecordHandler然后regist到context（关注ExcelVersionEnums中的factory）就可以了。
+
+    public static void excelRead(IHandlerContext context, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
+			int threadCount, boolean syncCurrentThread) throws Exception {
+		// synchronized main thread
+		CyclicBarrier cyclicBarrier = null;
+		threadCount = syncCurrentThread ? ++threadCount : threadCount;
+		if (callBack != null) {
+			cyclicBarrier = new CyclicBarrier(threadCount, () -> {
+				callBack.call();
+			});
+		} else {
+			cyclicBarrier = new CyclicBarrier(threadCount);
+		}
+		for (int i = 0; i < threadCount; i++) {
+			THREADPOOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier));
+		}
+		context.process();
+		if (syncCurrentThread) {
+			cyclicBarrier.await();
+		}
+	}
+
+### 框架结构
+
+如图，为整个EasyExcel的结构，其中（如果了解过设计模式，或者读过相关源码，应该会很容易理解）：
+
+1. 绿色为可扩展接口，
+2. 上半部分为写文件部分，下办部分为读文件。
+
+![图 1-1](http://images.cnblogs.com/cnblogs_com/Dorae/1325782/o_EasyExcel2.jpg)
+
+### 总结
+
+至此，EasyExcel的基本功能算是晚上了，欢迎各路大神提Issue过来。🍗
