@@ -5,6 +5,7 @@ package com.github.Dorae132.easyutil.easyexcel.export;
  * @author Dorae
  *
  * @param <T>
+ * @param <F>
  */
 @FunctionalInterface
 public interface IExcelProcessor <T, F> {
