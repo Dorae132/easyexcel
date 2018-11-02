@@ -12,8 +12,8 @@ import java.util.stream.Stream;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
 import com.dorae132.easyutil.easyexcel.export.ExcelCol;
+import com.dorae132.easyutil.easyexcel.export.IDataSupplier;
 import com.dorae132.easyutil.easyexcel.export.IExcelProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -60,7 +60,7 @@ public class ExcelProperties<T, R> {
 	
 	private IExcelProcessor processor;
 
-	private AbstractDataSupplier<T> dataSupplier;
+	private IDataSupplier<T> dataSupplier;
 	
 	private Class dataClazz;
 	
@@ -70,7 +70,7 @@ public class ExcelProperties<T, R> {
 	}
 	
 	public static ExcelProperties produceAppendProperties(String sheetName, String filePath, String fileName,
-			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor, AbstractDataSupplier<?> dataSupplier)
+			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor, IDataSupplier<?> dataSupplier)
 			throws Exception {
 		return new ExcelProperties<>(sheetName, null, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, processor, dataSupplier);
 	}
@@ -100,7 +100,7 @@ public class ExcelProperties<T, R> {
 	@SuppressWarnings("unchecked")
 	private ExcelProperties(String sheetName, List<T> dataList, String filePath, String fileName, int rowOffset,
 			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor,
-			AbstractDataSupplier<T> dataSupplier) throws Exception {
+			IDataSupplier<T> dataSupplier) throws Exception {
 		super();
 		// 1.check
 		if (CollectionUtils.isEmpty(dataList) && dataClazz == null) {
@@ -260,11 +260,11 @@ public class ExcelProperties<T, R> {
 		this.processor = processor;
 	}
 
-	public AbstractDataSupplier<T> getDataSupplier() {
+	public IDataSupplier<T> getDataSupplier() {
 		return dataSupplier;
 	}
 
-	public void setDataSupplier(AbstractDataSupplier<T> dataSupplier) {
+	public void setDataSupplier(IDataSupplier<T> dataSupplier) {
 		this.dataSupplier = dataSupplier;
 	}
 

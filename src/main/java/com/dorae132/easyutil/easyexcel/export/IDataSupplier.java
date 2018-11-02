@@ -10,8 +10,8 @@ import com.dorae132.easyutil.easyexcel.common.Pair;
  *
  * @param <T>
  */
-public abstract class AbstractDataSupplier<T> {
+public interface IDataSupplier<T> {
 	
-	public abstract Pair<List<T>, Boolean> getDatas();
+	public Pair<List<T>, Boolean> getDatas();
 
 }

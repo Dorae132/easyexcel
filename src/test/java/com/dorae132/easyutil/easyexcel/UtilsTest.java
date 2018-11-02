@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import com.dorae132.easyutil.easyexcel.common.Pair;
-import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
+import com.dorae132.easyutil.easyexcel.export.IDataSupplier;
 import com.dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.dorae132.easyutil.easyexcel.export.FillSheetModeEnums;
 import com.dorae132.easyutil.easyexcel.export.IExcelProcessor;
@@ -71,7 +71,7 @@ public class UtilsTest {
 		};
 		ExcelProperties<TestValue, File> properties = ExcelProperties.produceAppendProperties("",
 				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, processor,
-				new AbstractDataSupplier<TestValue>() {
+				new IDataSupplier<TestValue>() {
 					private int i = 0;
 
 					@Override

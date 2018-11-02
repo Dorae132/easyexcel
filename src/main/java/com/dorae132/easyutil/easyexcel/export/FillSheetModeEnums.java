@@ -44,7 +44,7 @@ public enum FillSheetModeEnums {
 			Pair datasPair = null;
 			List dataList = null;
 			boolean hasNext = false;
-			AbstractDataSupplier dataSupplier = properties.getDataSupplier();
+			IDataSupplier dataSupplier = properties.getDataSupplier();
 			while (dataSupplier != null) {
 				datasPair = dataSupplier.getDatas();
 				dataList = (List<?>) datasPair.getFirst();
@@ -74,7 +74,7 @@ public enum FillSheetModeEnums {
 		@Override
 		public void fill(ExcelProperties properties, Sheet sheet) throws Exception {
 			int rowOffset = 0;
-			AbstractDataSupplier dataSupplier = properties.getDataSupplier();
+			IDataSupplier dataSupplier = properties.getDataSupplier();
 			LinkedBlockingQueue dataPairQueue = new LinkedBlockingQueue<>();
 			// more data or not
 			AtomicBoolean moreData = new AtomicBoolean(true);
