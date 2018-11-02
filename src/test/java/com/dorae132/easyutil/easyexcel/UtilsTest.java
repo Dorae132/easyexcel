@@ -10,6 +10,7 @@ import com.dorae132.easyutil.easyexcel.common.Pair;
 import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
 import com.dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.dorae132.easyutil.easyexcel.export.FillSheetModeEnums;
+import com.dorae132.easyutil.easyexcel.export.IExcelProcessor;
 import com.dorae132.easyutil.easyexcel.read.IReadDoneCallBack;
 import com.dorae132.easyutil.easyexcel.read.IRowConsumer;
 import com.google.common.collect.Lists;
@@ -83,26 +84,25 @@ public class UtilsTest {
 		System.out.println("apendMode: " + (System.currentTimeMillis() - start));
 	}
 
-	// @Test
+	@Test
 	public static void testRead() throws Exception {
 		AtomicInteger count = new AtomicInteger(0);
 		long start = System.currentTimeMillis();
-		ExcelUtils.excelRead(ExcelProperties.produceReadProperties("C:\\Users\\Dorae\\Desktop\\ttt\\","append_0745704108fa42ffb656aef983229955.xlsx"),
-				new IRowConsumer<String>() {
+		ExcelUtils.excelRead(ExcelProperties.produceReadProperties("C:\\Users\\Dorae\\Desktop\\ttt\\",
+				"append_0745704108fa42ffb656aef983229955.xlsx"), new IRowConsumer<String>() {
 					@Override
 					public void consume(List<String> row) {
 						System.out.println(row);
 						count.incrementAndGet();
 					}
-				},
-				new IReadDoneCallBack<Void>() {
+				}, new IReadDoneCallBack<Void>() {
 					@Override
 					public Void call() {
-						System.out.println("end" + count.get() + "\n" + (System.currentTimeMillis() - start));
+						System.out.println(
+								"end, count: " + count.get() + "\ntime: " + (System.currentTimeMillis() - start));
 						return null;
 					}
-				},
-				1, true);
+				}, 1, true);
 		System.out.println("main end" + count.get());
 	}
 

@@ -5,7 +5,7 @@
 
 	<groupId>com.dorae132.easyutil</groupId>
 	<artifactId>easyexcel</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
 
 	<name>easyexcel</name>

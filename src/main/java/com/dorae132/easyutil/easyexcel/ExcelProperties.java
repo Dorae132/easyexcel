@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.dorae132.easyutil.easyexcel.export.AbstractDataSupplier;
 import com.dorae132.easyutil.easyexcel.export.ExcelCol;
+import com.dorae132.easyutil.easyexcel.export.IExcelProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 

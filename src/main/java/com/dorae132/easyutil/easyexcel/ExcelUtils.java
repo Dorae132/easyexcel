@@ -33,7 +33,7 @@ public class ExcelUtils {
 
 	/**
 	 * support the append strategy, but not rocommend, please focus on
-	 * excelExportApend()
+	 * FillSheetModeEnums.APPEND_MODE
 	 * 
 	 * @param properties
 	 * @param iFillSheet
