@@ -119,6 +119,36 @@ public class ExcelUtils {
 			cyclicBarrier.await();
 		}
 	}
+	
+	/**
+	 * You can expand the context use this
+	 * @param context
+	 * @param rowConsumer
+	 * @param callBack
+	 * @param threadCount
+	 * @param syncCurrentThread
+	 * @throws Exception
+	 */
+	public static void excelRead(IHandlerContext context, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
+			int threadCount, boolean syncCurrentThread) throws Exception {
+		// synchronized main thread
+		CyclicBarrier cyclicBarrier = null;
+		threadCount = syncCurrentThread ? ++threadCount : threadCount;
+		if (callBack != null) {
+			cyclicBarrier = new CyclicBarrier(threadCount, () -> {
+				callBack.call();
+			});
+		} else {
+			cyclicBarrier = new CyclicBarrier(threadCount);
+		}
+		for (int i = 0; i < threadCount; i++) {
+			THREADPOOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier));
+		}
+		context.process();
+		if (syncCurrentThread) {
+			cyclicBarrier.await();
+		}
+	}
 
 	/**
 	 * 校验目录是否存在
