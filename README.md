@@ -85,11 +85,11 @@
 
 [戳这里](https://github.com/Dorae132/easyexcel)
 
-##### pom（暂时没有打到中央仓库，请手动打包）
+##### pom
 
-    <groupId>com.dorae132.easyutil</groupId>
-	<artifactId>easyexcel</artifactId>
-	<version>1.0.0</version>
+    <groupId>com.github.Dorae132</groupId>
+	<artifactId>easyutil.easyexcel</artifactId>
+	<version>1.1.0</version>
 	
 ##### test
 
