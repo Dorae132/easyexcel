@@ -98,6 +98,7 @@ public enum FillSheetModeEnums {
 						}
 					} catch (Exception e) {
 						// just return
+					     throw new RuntimeException(e);
 					}
 					// the thread that be used to get data return
 					moreData.set(false);
@@ -111,6 +112,7 @@ public enum FillSheetModeEnums {
 				if (CollectionUtils.isEmpty(dataList)) {
 					if (moreData.get()) {
 						// there are more data then wait
+					    TimeUnit.MILLISECONDS.sleep(100);
 						continue;
 					} else {
 						// no more data then return

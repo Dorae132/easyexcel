@@ -67,7 +67,7 @@ public class ExcelUtils {
 			outputStream = new FileOutputStream(file);
 			sxssfWorkbook.write(outputStream);
 		} catch (Exception e) {
-			throw e;
+			throw new RuntimeException(e);
 		} finally {
 			if (outputStream != null) {
 				outputStream.close();
@@ -119,6 +119,44 @@ public class ExcelUtils {
 			cyclicBarrier.await();
 		}
 	}
+	
+	/**
+     * read util, enable multi sheet
+     * 
+     * @param properties
+     * @param rowConsumer
+     *            the consumer of a rowList
+     * @param callBack
+     *            if null do nothing
+     * @param threadCount
+     *            the number of the consume thread
+     * @param syncCurrentThread
+     *            synchronized the current thread or not
+     * @param executor
+     *            the consumer thread pool
+     * @throws Exception
+     */
+    public static void excelRead(ExcelProperties properties, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
+            int threadCount, boolean syncCurrentThread, ThreadPoolExecutor executor) throws Exception {
+        // synchronized main thread
+        CyclicBarrier cyclicBarrier = null;
+        threadCount = syncCurrentThread ? ++threadCount : threadCount;
+        if (callBack != null) {
+            cyclicBarrier = new CyclicBarrier(threadCount, () -> {
+                callBack.call();
+            });
+        } else {
+            cyclicBarrier = new CyclicBarrier(threadCount);
+        }
+        IHandlerContext context = ExcelVersionEnums.produceContext(properties);
+        for (int i = 0; i < threadCount; i++) {
+            executor.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier));
+        }
+        context.process();
+        if (syncCurrentThread) {
+            cyclicBarrier.await();
+        }
+    }
 	
 	/**
 	 * You can expand the context use this
