@@ -89,7 +89,7 @@
 
     <groupId>com.github.Dorae132</groupId>
 	<artifactId>easyutil.easyexcel</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.1</version>
 	
 ##### test
 
