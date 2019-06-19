@@ -1,7 +1,5 @@
 package com.github.Dorae132.easyutil.easyexcel;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -17,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.github.Dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.github.Dorae132.easyutil.easyexcel.export.IDataSupplier;
-import com.github.Dorae132.easyutil.easyexcel.export.IExcelProcessor;
+import com.github.Dorae132.easyutil.easyexcel.export.IWorkbookProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -47,7 +45,7 @@ public class ExcelProperties<T, R> {
 	private Map<String, Field> fieldNameMap;
 	
 	// 文件地址
-	private String filePath = "./liveunionExcels/";
+	private String filePath = "./easyexcel/";
 
 	// 文件名
 	private String fileName = new StringBuilder(UUID.randomUUID().toString()).append(".xlsx").toString().replace("-", "");
@@ -67,21 +65,24 @@ public class ExcelProperties<T, R> {
 	// 并行读线程池，默认实现异步ExcelUtils
 	private ThreadPoolExecutor readThreadPool = null;
 	
-	private IExcelProcessor processor;
+	// 并行写线程池
+	private ThreadPoolExecutor writeThreadPool = null;
+	
+	private IWorkbookProcessor<R> wbProcessor;
 
 	private IDataSupplier<T> dataSupplier;
 	
 	private Class dataClazz;
 	
 	public static ExcelProperties produceCommonProperties(String sheetName, List<?> dataList, String filePath,
-			String fileName, int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor) throws Exception {
-		return new ExcelProperties<>(sheetName, dataList, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, processor, null);
+			String fileName, int colOffset, Class dataClazz, int rowAccessWindowsize, IWorkbookProcessor wbProcessor) throws Exception {
+		return new ExcelProperties<>(sheetName, dataList, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, wbProcessor, null);
 	}
 	
 	public static ExcelProperties produceAppendProperties(String sheetName, String filePath, String fileName,
-			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor, IDataSupplier<?> dataSupplier)
+			int colOffset, Class dataClazz, int rowAccessWindowsize, IWorkbookProcessor wbProcessor, IDataSupplier<?> dataSupplier)
 			throws Exception {
-		return new ExcelProperties<>(sheetName, null, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, processor, dataSupplier);
+		return new ExcelProperties<>(sheetName, null, filePath, fileName, 0, colOffset, dataClazz, rowAccessWindowsize, wbProcessor, dataSupplier);
 	}
 	
 	public static ExcelProperties produceReadProperties(String filePath, String fileName) {
@@ -108,7 +109,7 @@ public class ExcelProperties<T, R> {
 	 */
 	@SuppressWarnings("unchecked")
 	private ExcelProperties(String sheetName, List<T> dataList, String filePath, String fileName, int rowOffset,
-			int colOffset, Class dataClazz, int rowAccessWindowsize, IExcelProcessor processor,
+			int colOffset, Class dataClazz, int rowAccessWindowsize, IWorkbookProcessor wbProcessor,
 			IDataSupplier<T> dataSupplier) throws Exception {
 		super();
 		// 1.check
@@ -132,7 +133,7 @@ public class ExcelProperties<T, R> {
 		}
 		this.rowOffset = rowOffset;
 		this.colOffset = colOffset;
-		this.processor = processor;
+		this.wbProcessor = wbProcessor;
 		this.dataSupplier = dataSupplier;
 		this.rowAccessWindowsize = (rowAccessWindowsize > 100 ? rowAccessWindowsize : 100);
 		// 3.special field
@@ -261,15 +262,15 @@ public class ExcelProperties<T, R> {
 		this.colOffset = colOffset;
 	}
 
-	public IExcelProcessor getProcessor() {
-		return processor;
-	}
+	public IWorkbookProcessor<R> getWbProcessor() {
+        return wbProcessor;
+    }
 
-	public void setProcessor(IExcelProcessor processor) {
-		this.processor = processor;
-	}
+    public void setWbProcessor(IWorkbookProcessor<R> wbProcessor) {
+        this.wbProcessor = wbProcessor;
+    }
 
-	public IDataSupplier<T> getDataSupplier() {
+    public IDataSupplier<T> getDataSupplier() {
 		return dataSupplier;
 	}
 
@@ -299,6 +300,14 @@ public class ExcelProperties<T, R> {
 
     public void setReadThreadPool(ThreadPoolExecutor readThreadPool) {
         this.readThreadPool = readThreadPool;
+    }
+
+    public ThreadPoolExecutor getWriteThreadPool() {
+        return writeThreadPool;
+    }
+
+    public void setWriteThreadPool(ThreadPoolExecutor writeThreadPool) {
+        this.writeThreadPool = writeThreadPool;
     }
 	
 }

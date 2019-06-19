@@ -3,7 +3,6 @@ package com.github.Dorae132.easyutil.easyexcel.export;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Sheet;
 
 import com.github.Dorae132.easyutil.easyexcel.ExcelProperties;
+import com.github.Dorae132.easyutil.easyexcel.common.EasyExcelException;
 import com.github.Dorae132.easyutil.easyexcel.common.Pair;
 
 /**
@@ -69,8 +69,8 @@ public enum FillSheetModeEnums {
 	 * 并行追加
 	 */
 	PARALLEL_APPEND_MODE(new IFillSheet() {
-		ExecutorService executorService = new ThreadPoolExecutor(0, 10, 60L, TimeUnit.SECONDS,
-				new SynchronousQueue<Runnable>());
+		ExecutorService executorService = new ThreadPoolExecutor(1, 2, 60L, TimeUnit.SECONDS,
+				new LinkedBlockingQueue<>(1024));
 		@Override
 		public void fill(ExcelProperties properties, Sheet sheet) throws Exception {
 			int rowOffset = 0;
@@ -98,14 +98,18 @@ public enum FillSheetModeEnums {
 						}
 					} catch (Exception e) {
 						// just return
-					     throw new RuntimeException(e);
+					     throw new EasyExcelException(e);
 					}
 					// the thread that be used to get data return
 					moreData.set(false);
 				}
 			};
 			// start
-			executorService.execute(getDataThread);
+			if (properties.getWriteThreadPool() != null) {
+                properties.getWriteThreadPool().execute(getDataThread);
+            } else {
+                executorService.execute(getDataThread);
+            }
 			// main thread fill the excel
 			while (true) {
 				List dataList = (List) dataPairQueue.poll();

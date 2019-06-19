@@ -10,10 +10,11 @@ import org.junit.Test;
 import com.github.Dorae132.easyutil.easyexcel.ExcelProperties;
 import com.github.Dorae132.easyutil.easyexcel.ExcelUtils;
 import com.github.Dorae132.easyutil.easyexcel.common.Pair;
+import com.github.Dorae132.easyutil.easyexcel.export.DefaultWorkbookProcessor;
 import com.github.Dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.github.Dorae132.easyutil.easyexcel.export.FillSheetModeEnums;
 import com.github.Dorae132.easyutil.easyexcel.export.IDataSupplier;
-import com.github.Dorae132.easyutil.easyexcel.export.IExcelProcessor;
+import com.github.Dorae132.easyutil.easyexcel.export.IWorkbookProcessor;
 import com.github.Dorae132.easyutil.easyexcel.read.IReadDoneCallBack;
 import com.github.Dorae132.easyutil.easyexcel.read.IRowConsumer;
 import com.google.common.collect.Lists;
@@ -64,15 +65,8 @@ public class UtilsTest {
 	public static void testAppend() throws Exception {
 		List<TestValue> dataList = getData(100000);
 		long start = System.currentTimeMillis();
-		IExcelProcessor processor = new IExcelProcessor<String, File>() {
-
-			@Override
-			public String process(File f) {
-				return f.getName();
-			}
-		};
 		ExcelProperties<TestValue, File> properties = ExcelProperties.produceAppendProperties("",
-				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, processor,
+				"C:\\Users\\Dorae\\Desktop\\ttt\\", "append.xlsx", 0, TestValue.class, 0, new DefaultWorkbookProcessor(),
 				new IDataSupplier<TestValue>() {
 					private int i = 0;
 
@@ -83,7 +77,7 @@ public class UtilsTest {
 						return Pair.of(dataList, hasNext);
 					}
 				});
-		String result = (String) ExcelUtils.excelExport(properties, FillSheetModeEnums.PARALLEL_APPEND_MODE.getValue());
+		File file = ExcelUtils.excelExport(properties, FillSheetModeEnums.PARALLEL_APPEND_MODE.getValue());
 		System.out.println("apendMode: " + (System.currentTimeMillis() - start));
 	}
 
