@@ -131,10 +131,14 @@ public class XlsxHandler extends DefaultHandler {
 		while (sheets.hasNext()) {
 			currRowIndex = 0;
 			sheetIndex++;
-			InputStream sheet = sheets.next();
-			InputSource sheetSource = new InputSource(sheet);
-			parser.parse(sheetSource);
-			sheet.close();
+			InputStream sheet = null;
+			try {
+			    sheet = sheets.next();
+			    InputSource sheetSource = new InputSource(sheet);
+			    parser.parse(sheetSource);
+			} finally {
+			    sheet.close();
+            }
 		}
 		while (!context.fileEnd())
 			;
