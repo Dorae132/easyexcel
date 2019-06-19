@@ -40,29 +40,31 @@ public enum ExcelVersionEnums {
 		FileInputStream inputStream = null;
 		try {
 		    inputStream = new FileInputStream(absolutePath);
+    		if (V2003.getSuffix().equals(fileNameSufix)) {
+    			HSSFRequest request = new HSSFRequest();
+    			POIFSFileSystem fileSystem = new POIFSFileSystem(inputStream);
+    			Default03RecordHandlerContext context = Default03RecordHandlerContext.Default03RecordContextFactory
+    					.getContext(request, fileSystem);
+    			MissingRecordAwareHSSFListener missingRecordAwareHSSFListener = new MissingRecordAwareHSSFListener(context);
+    			FormatTrackingHSSFListener formatTrackingHSSFListener = new FormatTrackingHSSFListener(
+    					missingRecordAwareHSSFListener);
+    			request.addListenerForAllRecords(formatTrackingHSSFListener);
+    			// hssfRequest.addListenerForAllRecords(new
+    			// SheetRecordCollectingListener(formatTrackingHSSFListener));
+    			return context;
+    		} else if (V2007.getSuffix().equals(fileNameSufix)) {
+    			XlsxHandler xlsxHandler = new XlsxHandler();
+    			Default07RecordHandlerContext context = Default07RecordHandlerContext.Default07RecordContextFactory
+    					.getContext(xlsxHandler, absolutePath);
+    			xlsxHandler.setContext(context);
+    			return context;
+    		} else {
+    			throw new RuntimeException("不支持的文件类型");
+    		}
 		} finally {
-            inputStream.close();
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
-		if (V2003.getSuffix().equals(fileNameSufix)) {
-			HSSFRequest request = new HSSFRequest();
-			POIFSFileSystem fileSystem = new POIFSFileSystem(inputStream);
-			Default03RecordHandlerContext context = Default03RecordHandlerContext.Default03RecordContextFactory
-					.getContext(request, fileSystem);
-			MissingRecordAwareHSSFListener missingRecordAwareHSSFListener = new MissingRecordAwareHSSFListener(context);
-			FormatTrackingHSSFListener formatTrackingHSSFListener = new FormatTrackingHSSFListener(
-					missingRecordAwareHSSFListener);
-			request.addListenerForAllRecords(formatTrackingHSSFListener);
-			// hssfRequest.addListenerForAllRecords(new
-			// SheetRecordCollectingListener(formatTrackingHSSFListener));
-			return context;
-		} else if (V2007.getSuffix().equals(fileNameSufix)) {
-			XlsxHandler xlsxHandler = new XlsxHandler();
-			Default07RecordHandlerContext context = Default07RecordHandlerContext.Default07RecordContextFactory
-					.getContext(xlsxHandler, absolutePath);
-			xlsxHandler.setContext(context);
-			return context;
-		} else {
-			throw new RuntimeException("不支持的文件类型");
-		}
 	};
 }
