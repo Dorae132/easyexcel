@@ -1,5 +1,6 @@
 package com.github.Dorae132.easyutil.easyexcel;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -48,22 +49,19 @@ public class ExcelUtils {
 				sheet = sxssfWorkbook.createSheet(properties.getSheetName());
 			}
 			iFillSheet.fill(properties, sheet);
+    		if (properties.getWbProcessor() != null) {
+    		    return properties.getWbProcessor().process(sxssfWorkbook, properties);
+    		} else {
+    		    return (R)sxssfWorkbook;
+    		}
 		} catch (Exception e) {
-			throw new EasyExcelException(e);
-		}
-		if (properties.getWbProcessor() != null) {
-		    try {
-                return properties.getWbProcessor().process(sxssfWorkbook, properties);
-            } catch (Exception e) {
-                throw new EasyExcelException(e);
-            }
-		} else {
-		    return (R)sxssfWorkbook;
-		}
+            throw new EasyExcelException(e);
+        }
 	}
 
 	/**
-	 * read util, enable multi sheet
+	 * read util, enable multi sheet<br>
+	 * when the syncCurrentThread is false and the callBack is not null, not recomand 
 	 * 
 	 * @param properties
 	 * @param rowConsumer
@@ -78,37 +76,43 @@ public class ExcelUtils {
 	 */
 	public static void excelRead(ExcelProperties properties, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
 			int threadCount, boolean syncCurrentThread) throws EasyExcelException {
-		// synchronized main thread
-		CyclicBarrier cyclicBarrier = null;
-		int barrierCount = syncCurrentThread ? threadCount + 1 : threadCount;
-		if (callBack != null) {
-			cyclicBarrier = new CyclicBarrier(barrierCount, () -> {
-				callBack.call();
-			});
-		} else {
-			cyclicBarrier = new CyclicBarrier(barrierCount);
-		}
+		CountDownLatch latch = new CountDownLatch(threadCount);
 		try {
-    		IHandlerContext context = ExcelVersionEnums.produceContext(properties);
-    		for (int i = 0; i < threadCount; i++) {
-    		    if (properties.getReadThreadPool() != null) {
-                    properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+            IHandlerContext context = ExcelVersionEnums.produceContext(properties);
+            for (int i = 0; i < threadCount; i++) {
+                if (properties.getReadThreadPool() != null) {
+                    properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, latch));
                 } else {
                     // default impl
-                    READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+                    READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, latch));
                 }
-    		}
-    		context.process();
+            }
+            // main thread get the rows
+            context.process();
     		if (syncCurrentThread) {
-    			cyclicBarrier.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
-    		}
+                latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
+                if (callBack != null) {
+                    callBack.call();
+                }
+            } else if (callBack != null) {
+                // not recomand
+                new Thread(() -> {
+                    try {
+                        latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
+                        callBack.call();
+                    } catch (InterruptedException e) {
+                        throw new EasyExcelException(e);
+                    }
+                }).start();
+            }
 		} catch (Exception e) {
-		    throw new EasyExcelException(e);
-		}
+            throw new EasyExcelException(e);
+        }
 	}
 	
 	/**
-	 * You can expand the context use this
+	 * You can expand the context use this <br>
+	 * when the syncCurrentThread is false and the callBack is not null, not recomand
 	 * @param context
 	 * @param rowConsumer
 	 * @param callBack
@@ -118,31 +122,35 @@ public class ExcelUtils {
 	 */
 	public static void excelRead(ExcelProperties properties, IHandlerContext context, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
 			int threadCount, boolean syncCurrentThread) throws EasyExcelException {
-		// synchronized main thread
-		CyclicBarrier cyclicBarrier = null;
-		int barrierCount = syncCurrentThread ? ++threadCount : threadCount;
-		if (callBack != null) {
-			cyclicBarrier = new CyclicBarrier(barrierCount, () -> {
-				callBack.call();
-			});
-		} else {
-			cyclicBarrier = new CyclicBarrier(barrierCount);
-		}
-		for (int i = 0; i < threadCount; i++) {
-		    if (properties.getReadThreadPool() != null) {
-                properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
-            } else {
-                // default impl
-                READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+	    CountDownLatch latch = new CountDownLatch(threadCount);
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                if (properties.getReadThreadPool() != null) {
+                    properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, latch));
+                } else {
+                    // default impl
+                    READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, latch));
+                }
             }
-		}
-		try {
-		context.process();
-		if (syncCurrentThread) {
-			cyclicBarrier.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
-		}
-		} catch (Exception e) {
-		    throw new EasyExcelException(e);
-		}
+            // main thread get the rows
+            context.process();
+            if (syncCurrentThread) {
+                latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
+                if (callBack != null) {
+                    callBack.call();
+                }
+            } else if (callBack != null) {
+                new Thread(() -> {
+                    try {
+                        latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
+                        callBack.call();
+                    } catch (InterruptedException e) {
+                        throw new EasyExcelException(e);
+                    }
+                }).start();
+            }
+        } catch (Exception e) {
+            throw new EasyExcelException(e);
+        }
 	}
 }

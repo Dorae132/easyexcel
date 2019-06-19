@@ -2,11 +2,13 @@ package com.github.Dorae132.easyutil.easyexcel.read;
 
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.github.Dorae132.easyutil.easyexcel.common.EasyExcelException;
 import com.github.Dorae132.easyutil.easyexcel.read.event.IHandlerContext;
 
 /**
@@ -20,44 +22,41 @@ public class ConsumeRowThread<C> implements Runnable {
 	private IHandlerContext<C> context;
 
 	private IRowConsumer<C> rowConsumer;
-
-	private CyclicBarrier cyclicBarrier;
 	
-	private int waitTime;
+	private CountDownLatch lanch;
 
 	@Override
 	public void run() {
-		while (true) {
-			List<C> row = null;
-			try {
-				row = context.getRow();
-			} catch (Exception e) {
-				// do nothing
-			}
-			if (CollectionUtils.isEmpty(row)) {
-				if (!context.isFileEnded()) {
-					// there are more rows
-					continue;
-				} else {
-					// there are no more rows
-					break;
-				}
-			}
-			rowConsumer.consume(row);
-		}
-		try {
-			cyclicBarrier.await(waitTime, TimeUnit.SECONDS);
-		} catch (Exception e) {
-		    // do nothing
-		}
+	    try {
+    		while (true) {
+    			List<C> row = null;
+    			row = context.getRow();
+    			if (CollectionUtils.isEmpty(row)) {
+    				if (!context.isFileEnded()) {
+    					// there are more rows
+    				    TimeUnit.MILLISECONDS.sleep(100);
+    					continue;
+    				} else {
+    					// there are no more rows
+    					break;
+    				}
+    			}
+    			rowConsumer.consume(row);
+    		}
+	    } catch (Exception e) {
+            throw new EasyExcelException(e);
+        } finally {
+            if (lanch != null) {
+                lanch.countDown();
+            }
+        }
 	}
 
-	public ConsumeRowThread(IHandlerContext<C> context, IRowConsumer<C> rowConsumer, CyclicBarrier cyclicBarrier, int waitTime) {
+	public ConsumeRowThread(IHandlerContext<C> context, IRowConsumer<C> rowConsumer, CountDownLatch latch) {
 		super();
 		this.context = context;
 		this.rowConsumer = rowConsumer;
-		this.cyclicBarrier = cyclicBarrier;
-		this.waitTime = waitTime;
+		this.lanch = latch;
 	}
 
 }
