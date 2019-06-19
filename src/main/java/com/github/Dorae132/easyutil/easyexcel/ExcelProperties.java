@@ -1,11 +1,14 @@
 package com.github.Dorae132.easyutil.easyexcel;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,6 +60,12 @@ public class ExcelProperties<T, R> {
 
 	// 缓冲
 	private int rowAccessWindowsize = 100;
+	
+	// 读模式，线程等待最大时长/秒
+	private int readThreadWaitTime = 300;
+	
+	// 并行读线程池，默认实现异步ExcelUtils
+	private ThreadPoolExecutor readThreadPool = null;
 	
 	private IExcelProcessor processor;
 
@@ -275,4 +284,21 @@ public class ExcelProperties<T, R> {
 	public void setDataClazz(Class dataClazz) {
 		this.dataClazz = dataClazz;
 	}
+
+    public int getReadThreadWaitTime() {
+        return readThreadWaitTime;
+    }
+
+    public void setReadThreadWaitTime(int readThreadWaitTime) {
+        this.readThreadWaitTime = readThreadWaitTime;
+    }
+
+    public ThreadPoolExecutor getReadThreadPool() {
+        return readThreadPool;
+    }
+
+    public void setReadThreadPool(ThreadPoolExecutor readThreadPool) {
+        this.readThreadPool = readThreadPool;
+    }
+	
 }

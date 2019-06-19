@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -28,9 +28,9 @@ import com.github.Dorae132.easyutil.easyexcel.read.event.IHandlerContext;
  */
 public class ExcelUtils {
 
-	private static ThreadPoolExecutor THREADPOOL = new ThreadPoolExecutor(0, 10, 1, TimeUnit.SECONDS,
-			new SynchronousQueue<Runnable>());
-
+    // 并行读默认线程池
+    private static final ThreadPoolExecutor READ_THREAD_POOL = new ThreadPoolExecutor(1, 2, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(2048));
+    
 	/**
 	 * support the append strategy, but not rocommend, please focus on
 	 * FillSheetModeEnums.APPEND_MODE
@@ -102,61 +102,28 @@ public class ExcelUtils {
 			int threadCount, boolean syncCurrentThread) throws Exception {
 		// synchronized main thread
 		CyclicBarrier cyclicBarrier = null;
-		threadCount = syncCurrentThread ? ++threadCount : threadCount;
+		int barrierCount = syncCurrentThread ? threadCount + 1 : threadCount;
 		if (callBack != null) {
-			cyclicBarrier = new CyclicBarrier(threadCount, () -> {
+			cyclicBarrier = new CyclicBarrier(barrierCount, () -> {
 				callBack.call();
 			});
 		} else {
-			cyclicBarrier = new CyclicBarrier(threadCount);
+			cyclicBarrier = new CyclicBarrier(barrierCount);
 		}
 		IHandlerContext context = ExcelVersionEnums.produceContext(properties);
 		for (int i = 0; i < threadCount; i++) {
-			THREADPOOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier));
+		    if (properties.getReadThreadPool() != null) {
+                properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+            } else {
+                // default impl
+                READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+            }
 		}
 		context.process();
 		if (syncCurrentThread) {
-			cyclicBarrier.await();
+			cyclicBarrier.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
 		}
 	}
-	
-	/**
-     * read util, enable multi sheet
-     * 
-     * @param properties
-     * @param rowConsumer
-     *            the consumer of a rowList
-     * @param callBack
-     *            if null do nothing
-     * @param threadCount
-     *            the number of the consume thread
-     * @param syncCurrentThread
-     *            synchronized the current thread or not
-     * @param executor
-     *            the consumer thread pool
-     * @throws Exception
-     */
-    public static void excelRead(ExcelProperties properties, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
-            int threadCount, boolean syncCurrentThread, ThreadPoolExecutor executor) throws Exception {
-        // synchronized main thread
-        CyclicBarrier cyclicBarrier = null;
-        threadCount = syncCurrentThread ? ++threadCount : threadCount;
-        if (callBack != null) {
-            cyclicBarrier = new CyclicBarrier(threadCount, () -> {
-                callBack.call();
-            });
-        } else {
-            cyclicBarrier = new CyclicBarrier(threadCount);
-        }
-        IHandlerContext context = ExcelVersionEnums.produceContext(properties);
-        for (int i = 0; i < threadCount; i++) {
-            executor.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier));
-        }
-        context.process();
-        if (syncCurrentThread) {
-            cyclicBarrier.await();
-        }
-    }
 	
 	/**
 	 * You can expand the context use this
@@ -167,24 +134,29 @@ public class ExcelUtils {
 	 * @param syncCurrentThread
 	 * @throws Exception
 	 */
-	public static void excelRead(IHandlerContext context, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
+	public static void excelRead(ExcelProperties properties, IHandlerContext context, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
 			int threadCount, boolean syncCurrentThread) throws Exception {
 		// synchronized main thread
 		CyclicBarrier cyclicBarrier = null;
-		threadCount = syncCurrentThread ? ++threadCount : threadCount;
+		int barrierCount = syncCurrentThread ? ++threadCount : threadCount;
 		if (callBack != null) {
-			cyclicBarrier = new CyclicBarrier(threadCount, () -> {
+			cyclicBarrier = new CyclicBarrier(barrierCount, () -> {
 				callBack.call();
 			});
 		} else {
-			cyclicBarrier = new CyclicBarrier(threadCount);
+			cyclicBarrier = new CyclicBarrier(barrierCount);
 		}
 		for (int i = 0; i < threadCount; i++) {
-			THREADPOOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier));
+		    if (properties.getReadThreadPool() != null) {
+                properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+            } else {
+                // default impl
+                READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, cyclicBarrier, properties.getReadThreadWaitTime()));
+            }
 		}
 		context.process();
 		if (syncCurrentThread) {
-			cyclicBarrier.await();
+			cyclicBarrier.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
 		}
 	}
 
