@@ -1,5 +1,6 @@
 package com.github.Dorae132.easyutil.easyexcel.read.event.excel03;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,6 +12,7 @@ import org.apache.poi.hssf.record.Record;
 import org.apache.poi.hssf.record.SSTRecord;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
+import com.github.Dorae132.easyutil.easyexcel.common.EasyExcelException;
 import com.github.Dorae132.easyutil.easyexcel.read.event.excel03.handler.Abstract03RecordHandler;
 import com.github.Dorae132.easyutil.easyexcel.read.event.excel03.handler.BlankRecordHandler;
 import com.github.Dorae132.easyutil.easyexcel.read.event.excel03.handler.BoundSheetRecordHandler;
@@ -178,8 +180,15 @@ public class Default03RecordHandlerContext implements IRecordHandlerContext<Reco
 		try {
 			this.handle(record);
 		} catch (Exception e) {
-			// do nothing
+			throw new EasyExcelException(e);
 		}
 	}
+
+    @Override
+    public void close() throws IOException {
+        if (fileSystem != null) {
+            fileSystem.close();
+        }
+    }
 
 }

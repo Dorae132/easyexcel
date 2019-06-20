@@ -1,7 +1,6 @@
 package com.github.Dorae132.easyutil.easyexcel;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -11,10 +10,13 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.github.Dorae132.easyutil.easyexcel.common.EasyExcelException;
+import com.github.Dorae132.easyutil.easyexcel.common.Pair;
 import com.github.Dorae132.easyutil.easyexcel.export.IFillSheet;
 import com.github.Dorae132.easyutil.easyexcel.read.ConsumeRowThread;
+import com.github.Dorae132.easyutil.easyexcel.read.DefaultReadDoneCallBackProcessor;
 import com.github.Dorae132.easyutil.easyexcel.read.ExcelVersionEnums;
 import com.github.Dorae132.easyutil.easyexcel.read.IReadDoneCallBack;
+import com.github.Dorae132.easyutil.easyexcel.read.IReadDoneCallBackProcessor;
 import com.github.Dorae132.easyutil.easyexcel.read.IRowConsumer;
 import com.github.Dorae132.easyutil.easyexcel.read.event.IHandlerContext;
 
@@ -27,7 +29,7 @@ import com.github.Dorae132.easyutil.easyexcel.read.event.IHandlerContext;
 public class ExcelUtils {
 
     // 并行读默认线程池
-    private static final ThreadPoolExecutor READ_THREAD_POOL = new ThreadPoolExecutor(1, 2, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(1024));
+    private static final ThreadPoolExecutor READ_THREAD_POOL = new ThreadPoolExecutor(0, 2, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(1024));
     
 	/**
 	 * support the append strategy, but not rocommend, please focus on
@@ -38,11 +40,12 @@ public class ExcelUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T, R> R excelExport(ExcelProperties<T, R> properties, IFillSheet iFillSheet) throws EasyExcelException {
+	public static <T, R> R excelExport(ExcelProperties<T, R> properties, IFillSheet iFillSheet) throws Exception {
 		// 2.写入文件
 		SXSSFWorkbook sxssfWorkbook = null;
+		XSSFWorkbook xssfWorkbook = null;
 		try {
-			XSSFWorkbook xssfWorkbook = new XSSFWorkbook();
+			xssfWorkbook = new XSSFWorkbook();;
 			sxssfWorkbook = new SXSSFWorkbook(xssfWorkbook, properties.getRowAccessWindowsize());
 			Sheet sheet = sxssfWorkbook.getSheet(properties.getSheetName());
 			if (sheet == null) {
@@ -56,6 +59,15 @@ public class ExcelUtils {
     		}
 		} catch (Exception e) {
             throw new EasyExcelException(e);
+        } finally {
+            if (properties.getWbProcessor() != null) {
+                if (xssfWorkbook != null) {
+                    xssfWorkbook.close();
+                }
+                if (sxssfWorkbook != null) {
+                    sxssfWorkbook.close();
+                }
+            }
         }
 	}
 
@@ -75,39 +87,9 @@ public class ExcelUtils {
 	 * @throws Exception
 	 */
 	public static void excelRead(ExcelProperties properties, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
-			int threadCount, boolean syncCurrentThread) throws EasyExcelException {
-		CountDownLatch latch = new CountDownLatch(threadCount);
-		try {
-            IHandlerContext context = ExcelVersionEnums.produceContext(properties);
-            for (int i = 0; i < threadCount; i++) {
-                if (properties.getReadThreadPool() != null) {
-                    properties.getReadThreadPool().execute(new ConsumeRowThread<>(context, rowConsumer, latch));
-                } else {
-                    // default impl
-                    READ_THREAD_POOL.execute(new ConsumeRowThread(context, rowConsumer, latch));
-                }
-            }
-            // main thread get the rows
-            context.process();
-    		if (syncCurrentThread) {
-                latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
-                if (callBack != null) {
-                    callBack.call();
-                }
-            } else if (callBack != null) {
-                // not recomand
-                new Thread(() -> {
-                    try {
-                        latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
-                        callBack.call();
-                    } catch (InterruptedException e) {
-                        throw new EasyExcelException(e);
-                    }
-                }).start();
-            }
-		} catch (Exception e) {
-            throw new EasyExcelException(e);
-        }
+			int threadCount, boolean syncCurrentThread) throws Exception {
+	    IHandlerContext context = ExcelVersionEnums.produceContext(properties);
+	    excelRead(properties, context, rowConsumer, callBack, threadCount, syncCurrentThread);
 	}
 	
 	/**
@@ -121,7 +103,7 @@ public class ExcelUtils {
 	 * @throws Exception
 	 */
 	public static void excelRead(ExcelProperties properties, IHandlerContext context, IRowConsumer rowConsumer, IReadDoneCallBack callBack,
-			int threadCount, boolean syncCurrentThread) throws EasyExcelException {
+			int threadCount, boolean syncCurrentThread) throws Exception {
 	    CountDownLatch latch = new CountDownLatch(threadCount);
         try {
             for (int i = 0; i < threadCount; i++) {
@@ -140,17 +122,17 @@ public class ExcelUtils {
                     callBack.call();
                 }
             } else if (callBack != null) {
-                new Thread(() -> {
-                    try {
-                        latch.await(properties.getReadThreadWaitTime(), TimeUnit.SECONDS);
-                        callBack.call();
-                    } catch (InterruptedException e) {
-                        throw new EasyExcelException(e);
-                    }
-                }).start();
+                // not recomand, because there will be a new thread for every request.
+                IReadDoneCallBackProcessor readDoneCallBackProcessor = properties.getReadDoneCallBackProcessor();
+                if (readDoneCallBackProcessor == null) {
+                    readDoneCallBackProcessor = new DefaultReadDoneCallBackProcessor();
+                }
+                readDoneCallBackProcessor.process(Pair.of(latch, callBack), properties);
             }
         } catch (Exception e) {
             throw new EasyExcelException(e);
+        } finally {
+            context.close();
         }
 	}
 }

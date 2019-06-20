@@ -69,7 +69,7 @@ public enum FillSheetModeEnums {
 	 * 并行追加
 	 */
 	PARALLEL_APPEND_MODE(new IFillSheet() {
-		ExecutorService executorService = new ThreadPoolExecutor(1, 2, 60L, TimeUnit.SECONDS,
+		ExecutorService executorService = new ThreadPoolExecutor(0, 2, 60L, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(1024));
 		@Override
 		public void fill(ExcelProperties properties, Sheet sheet) throws Exception {

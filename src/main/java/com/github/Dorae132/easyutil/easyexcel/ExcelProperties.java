@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.Dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.github.Dorae132.easyutil.easyexcel.export.IDataSupplier;
 import com.github.Dorae132.easyutil.easyexcel.export.IWorkbookProcessor;
+import com.github.Dorae132.easyutil.easyexcel.read.IReadDoneCallBackProcessor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -69,6 +70,9 @@ public class ExcelProperties<T, R> {
 	private ThreadPoolExecutor writeThreadPool = null;
 	
 	private IWorkbookProcessor<R> wbProcessor;
+	
+	// 读模式结束回调
+	private IReadDoneCallBackProcessor readDoneCallBackProcessor;
 
 	private IDataSupplier<T> dataSupplier;
 	
@@ -308,6 +312,14 @@ public class ExcelProperties<T, R> {
 
     public void setWriteThreadPool(ThreadPoolExecutor writeThreadPool) {
         this.writeThreadPool = writeThreadPool;
+    }
+
+    public IReadDoneCallBackProcessor getReadDoneCallBackProcessor() {
+        return readDoneCallBackProcessor;
+    }
+
+    public void setReadDoneCallBackProcessor(IReadDoneCallBackProcessor readDoneCallBackProcessor) {
+        this.readDoneCallBackProcessor = readDoneCallBackProcessor;
     }
 	
 }

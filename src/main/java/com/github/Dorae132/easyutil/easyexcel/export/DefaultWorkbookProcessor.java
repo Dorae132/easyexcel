@@ -31,6 +31,9 @@ public class DefaultWorkbookProcessor implements IWorkbookProcessor<File>{
             if (out != null) {
                 out.close();
             }
+            if (wb != null) {
+                wb.close();
+            }
         }
         return file;
     }

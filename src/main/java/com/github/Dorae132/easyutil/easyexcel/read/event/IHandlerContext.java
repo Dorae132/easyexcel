@@ -1,5 +1,6 @@
 package com.github.Dorae132.easyutil.easyexcel.read.event;
 
+import java.io.Closeable;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  * @param <C>
  *            The type that wanted in the cell
  */
-public interface IHandlerContext<C> {
+public interface IHandlerContext<C> extends Closeable {
 
 	/**
 	 * produce a new row

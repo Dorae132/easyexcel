@@ -1,5 +1,6 @@
 package com.github.Dorae132.easyutil.easyexcel.read.event.excel07;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,4 +61,9 @@ public class Default07RecordHandlerContext implements IHandlerContext<String> {
 	public void process() throws Exception {
 		handler.process(fileName);
 	}
+
+    @Override
+    public void close() throws IOException {
+        // just do nothing
+    }
 }

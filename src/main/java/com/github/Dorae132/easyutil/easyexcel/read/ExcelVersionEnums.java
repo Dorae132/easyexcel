@@ -37,10 +37,9 @@ public enum ExcelVersionEnums {
 		StringBuilder fileNameSB = new StringBuilder(properties.getFileName());
 		String fileNameSufix = fileNameSB.substring(fileNameSB.lastIndexOf(".") + 1, fileNameSB.length());
 		String absolutePath = fileNameSB.insert(0, properties.getFilePath()).toString();
-		FileInputStream inputStream = null;
 		try {
-		    inputStream = new FileInputStream(absolutePath);
     		if (V2003.getSuffix().equals(fileNameSufix)) {
+    		    FileInputStream inputStream = new FileInputStream(absolutePath);
     			HSSFRequest request = new HSSFRequest();
     			POIFSFileSystem fileSystem = new POIFSFileSystem(inputStream);
     			Default03RecordHandlerContext context = Default03RecordHandlerContext.Default03RecordContextFactory
@@ -62,9 +61,7 @@ public enum ExcelVersionEnums {
     			throw new RuntimeException("不支持的文件类型");
     		}
 		} finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
+            // the stream will be closed int the context.
         }
 	};
 }

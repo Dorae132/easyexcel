@@ -7,14 +7,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import com.github.Dorae132.easyutil.easyexcel.ExcelProperties;
-import com.github.Dorae132.easyutil.easyexcel.ExcelUtils;
 import com.github.Dorae132.easyutil.easyexcel.common.Pair;
 import com.github.Dorae132.easyutil.easyexcel.export.DefaultWorkbookProcessor;
 import com.github.Dorae132.easyutil.easyexcel.export.ExcelCol;
 import com.github.Dorae132.easyutil.easyexcel.export.FillSheetModeEnums;
 import com.github.Dorae132.easyutil.easyexcel.export.IDataSupplier;
-import com.github.Dorae132.easyutil.easyexcel.export.IWorkbookProcessor;
 import com.github.Dorae132.easyutil.easyexcel.read.IReadDoneCallBack;
 import com.github.Dorae132.easyutil.easyexcel.read.IRowConsumer;
 import com.google.common.collect.Lists;

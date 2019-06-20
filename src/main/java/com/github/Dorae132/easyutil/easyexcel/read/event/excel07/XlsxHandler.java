@@ -122,26 +122,30 @@ public class XlsxHandler extends DefaultHandler {
 	 * @throws Exception
 	 */
 	public void process(String filename) throws IOException, OpenXML4JException, SAXException {
-		OPCPackage pkg = OPCPackage.open(filename);
-		XSSFReader xssfReader = new XSSFReader(pkg);
-		stylesTable = xssfReader.getStylesTable();
-		SharedStringsTable sst = xssfReader.getSharedStringsTable();
-		XMLReader parser = this.fetchSheetParser(sst);
-		Iterator<InputStream> sheets = xssfReader.getSheetsData();
-		while (sheets.hasNext()) {
-			currRowIndex = 0;
-			sheetIndex++;
-			InputStream sheet = null;
-			try {
-			    sheet = sheets.next();
-			    InputSource sheetSource = new InputSource(sheet);
-			    parser.parse(sheetSource);
-			} finally {
-			    sheet.close();
-            }
-		}
-		while (!context.fileEnd())
-			;
+	    OPCPackage pkg = null;
+	    try {
+		    pkg = OPCPackage.open(filename);
+	        XSSFReader xssfReader = new XSSFReader(pkg);
+	        stylesTable = xssfReader.getStylesTable();
+	        SharedStringsTable sst = xssfReader.getSharedStringsTable();
+	        XMLReader parser = this.fetchSheetParser(sst);
+	        Iterator<InputStream> sheets = xssfReader.getSheetsData();
+    		while (sheets.hasNext()) {
+    			currRowIndex = 0;
+    			sheetIndex++;
+    			InputStream sheet = null;
+    			try {
+    			    sheet = sheets.next();
+    			    InputSource sheetSource = new InputSource(sheet);
+    			    parser.parse(sheetSource);
+    			} finally {
+    			    sheet.close();
+                }
+    		}
+    		while (!context.fileEnd());
+		} finally {
+            pkg.close();
+        }
 	}
 
 	private XMLReader fetchSheetParser(SharedStringsTable sst) throws SAXException {
