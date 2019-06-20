@@ -40,7 +40,7 @@ public class DefaultWorkbookProcessor implements IWorkbookProcessor<File>{
      * 
      * @param filePath
      */
-    private static void validateFileDir(String filePath) {
+    private static synchronized void validateFileDir(String filePath) {
         File tempDir = new File(filePath);
         if (!tempDir.exists() && !tempDir.isDirectory()) {
             tempDir.mkdir();
