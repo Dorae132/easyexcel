@@ -12,6 +12,6 @@ import com.github.Dorae132.easyutil.easyexcel.common.Pair;
  */
 public interface IReadDoneCallBackProcessor<R, C> {
     
-    R process(Pair<CountDownLatch, IReadDoneCallBack> callback, ExcelProperties properties) throws Exception;
+    R process(Pair<CountDownLatch, IReadDoneCallBack> callback, ExcelProperties<?, C> properties) throws Exception;
 
 }
